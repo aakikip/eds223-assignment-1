@@ -1,0 +1,182 @@
+---
+title: "Exploration of Environmental Justice in Oxford County, Maine"
+author: Aakriti Poudel
+date: "10/06/2025"
+format: pdf
+#output
+  #html: default
+code-fold: FALSE
+editor: visual
+execute: 
+  warning: false
+  message: false
+---
+
+## Background
+
+### Exploration of relationship between the low income population and the old housing units
+
+These two maps illustrates the 56 census block groups in Oxford County of Maine state. Census Block Group is a geographical unit between [Census Tract](https://en.wikipedia.org/wiki/Census_tract) and [Census Block](https://en.wikipedia.org/wiki/Census_block) which is used by US Census Bureau.
+
+The map on the left presents the percentage of the low income population, whereas the map on the right indicates the number of housing units that were built before 1960.
+
+Low income is defined as a household whose income is less than or equal to twice the poverty level. The poverty threshold defined by the U.S. Census Bureau for 2020 is \$26,496. The low income map shows that the low income population is mostly concentrated in the northern and far southern areas, with a few scattered blocks in the central area. The map of older housing units demonstrates that there are more old housing units in central and southern parts, with one northern block also having a high number of old house unit.
+
+The comparison between these two maps shows that many low income population live in an old housing units built before 1960. However, in some census block group, this pattern does not appear. This may suggest that those neighborhoods might have been developed after 1960.
+
+The people living in an older housing units tend to face more socioeconomic disadvantages in the social construct. These areas usually have lower property values and poor housing conditions which ultimately attracts low income residents.
+
+The most important thing is that older housing units often contain hazardous materials such as asbestos and lead paint, if not handled and disposed properly, can contaminate the environment and pose threat to ecosystems and local communities. These units also tend to have high energy consumption and poor waste management systems. In addition, they are more vulnerable to adverse effect of climate change such as flooding and heatwave. Sometimes, demolishing older housing units can also create significant waste management challenges due to the large volume of debris generated. Thus, the older housing structures contribute to negative environmental impacts and pose risks to human health. This highlights the need for better housing rehabilitation initiatives and urban planning so that it helps improve the infrastructure, living conditions and equality.
+
+## Load Libraries
+
+```{r}
+#Load the libraries
+
+library(tidyverse)
+library(sf)
+library(here)
+library(tmap)
+```
+
+## Read Data
+
+```{r}
+#| warning: false
+#| message: false
+
+# Read in geodatabase of EJScreen data at the Census Block Group level
+
+ejscreen <- sf::st_read(here::here("data",
+                                   "ejscreen",
+                                   "EJSCREEN_2023_BG_StatePct_with_AS_CNMI_GU_VI.gdb")) 
+```
+
+```{r}
+#| include: false
+# Check the elements in the column "STATE_NAME"
+
+unique(ejscreen$STATE_NAME)
+```
+
+```{r}
+#| include: false
+# Check the elements in the column "ST_ABBREV"
+
+unique(ejscreen$ST_ABBREV)
+```
+
+## Filter Data
+
+```{r}
+# Filter to a state you are interested in: Maine
+
+maine <- ejscreen %>%
+  dplyr::filter(ST_ABBREV == "ME") 
+```
+
+```{r}
+#| include: false
+# Check the elements in the column "CNTY_NAME"
+
+unique(maine$CNTY_NAME)
+```
+
+```{r}
+# Filter to a county you are interested in: Oxford County
+
+oxford <- maine %>%
+  dplyr::filter(CNTY_NAME %in% c("Oxford County"))
+```
+
+```{r}
+#| include: false
+# Find the average values for all variables within counties
+
+#maine_counties <- aggregate(maine, by = list(maine$CNTY_NAME), FUN = mean)
+```
+
+## Data Visualization
+
+```{r}
+# Map 1: Plotting a map of the percent low income
+
+low_income <- tm_shape(oxford) +
+  tm_polygons(fill = "LOWINCPCT",
+              fill.scale = tm_scale(values = "pu_gn_div"),
+              fill.legend = tm_legend(title = "% of low income population")) +
+  tm_title(text = "Percentage of low income population in Oxford County",
+           fontface = "bold",
+           size = 0.8,
+           position = tm_pos_out("center", "top")) +
+  tm_graticules(alpha = 0.2) +
+  tm_compass(position = c("right", "top"),
+             size = 0.9) +
+  tm_scalebar(position = c(0.1, 0)) +
+  tm_layout(component.autoscale = FALSE)
+
+low_income
+
+```
+
+```{r}
+# Map 2: Plotting a map of the housing units built pre-1960
+
+housing_unit <- tm_shape(oxford) +
+  tm_polygons(fill = "ACSTOTHU",
+              fill.scale = tm_scale_continuous(values = "matplotlib.rd_yl_bu"),
+              fill.legend = tm_legend(title = "No. of housing units built pre-1960",
+                                      #orientation = "landscape",
+                                      text.size = 0.6,
+                                      title.size = 0.8)) +
+  tm_title(text = "Housing units built pre-1960 in Oxford County",
+           fontface = "bold",
+           size = 0.8,
+           position = tm_pos_out("center", "top")) +
+  tm_graticules(alpha = 0.2) +
+  tm_compass(position = c("right", "top"),
+             size = 0.8) +
+  tm_scalebar(position = c(0.1, 0)) +
+  tm_layout(component.autoscale = FALSE,
+            legend.outside = TRUE,
+            legend.outside.position = c("bottom"))
+
+housing_unit
+
+```
+
+## Save Map
+
+```{r}
+# Saving Map 1 (low income population)
+
+tmap_save(low_income, here("figs", "low_income.jpg"),
+          width = 12, height = 12)
+
+# Saving Map 2 (housing units)
+
+tmap_save(housing_unit, here("figs", "housing_units.jpg"),
+          width = 12, height = 12)
+```
+
+```{r}
+#| include: false
+
+# Using `tmap_arrange` to combine two maps into one
+
+map <- tmap_arrange(low_income, housing_unit, ncol = 2) 
+
+map
+
+```
+
+```{r}
+#| include: false
+
+# Saving the final combined map
+
+tmap_save(map, here("figs", "ej_map.jpg"), width = 16, height = 16)
+
+```
+
+
