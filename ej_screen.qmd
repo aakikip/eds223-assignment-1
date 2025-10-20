@@ -42,6 +42,7 @@ library(tmap)
 ## Read Data
 
 ```{r}
+#| output: false
 #| warning: false
 #| message: false
 
@@ -103,7 +104,7 @@ oxford <- maine %>%
 
 low_income <- tm_shape(oxford) +
   tm_polygons(fill = "LOWINCPCT",
-              fill.scale = tm_scale(values = "pu_gn_div"),
+              fill.scale = tm_scale(values = "viridis"),
               fill.legend = tm_legend(title = "% of low income population")) +
   tm_title(text = "Percentage of low income population in Oxford County",
            fontface = "bold",
@@ -124,7 +125,7 @@ low_income
 
 housing_unit <- tm_shape(oxford) +
   tm_polygons(fill = "ACSTOTHU",
-              fill.scale = tm_scale_continuous(values = "matplotlib.rd_yl_bu"),
+              fill.scale = tm_scale_continuous(values = "plasma"),
               fill.legend = tm_legend(title = "No. of housing units built pre-1960",
                                       #orientation = "landscape",
                                       text.size = 0.6,
@@ -178,5 +179,3 @@ map
 tmap_save(map, here("figs", "ej_map.jpg"), width = 16, height = 16)
 
 ```
-
-
